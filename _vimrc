@@ -48,7 +48,6 @@ if g:isGUI
 	set guioptions-=r		" hide right scroll bar
 	set guioptions-=m		" hide menu
 	set guioptions-=b		" hide bottom scroll bar
-
 	set guioptions+=c		" show character box ?
 
 	if g:isWIN
@@ -100,6 +99,7 @@ Plug 'jrosiek/vim-mark'
 
 
 call plug#end()
+
 " support for mouse
 if has('mouse')
 	set mouse=a					" mouse can be used in all modes, normal, visual ...
@@ -122,7 +122,7 @@ set smartindent
 set number
 set ruler
 set autochdir
-set so=10
+set so=5
 set autoread
 set laststatus=2
 set list lcs=tab:\|\ ,trail:.
@@ -153,9 +153,38 @@ set hlsearch			" highlight results
 au FileType c,cpp,h,java,css,js,nginx,scala,go,vim inoremap <buffer> {<CR> {<CR>}<Esc>O
 
 let mapleader = ","
-nnoremap <leader>ev :vsplit $MYVIMRC<cr>
+nnoremap <leader>ev :tabe $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 nnoremap <leader>" viw<esc>i"<esc>hbi"<esc>lel
 inoremap jk <esc>
 inoremap <esc> <nop>
 autocmd BufWritePre *.html :normal gg=G
+
+au BufNewFile *.py call LinuxScriptHeader()
+au BufNewFile *.sh call LinuxScriptHeader()
+
+" vim functions {{{
+function LinuxScriptHeader()
+    if &filetype == 'python'
+        let header = "#!/usr/bin/env python"
+        let coding = "# -*- coding:utf-8 -*-"
+        let cfg = "# vim: ts=4 sw=4 sts=4 expandtab"
+    elseif &filetype == 'sh'
+        let header = "#/bin/bash"
+    endif
+    let line = getline(1)
+    if line == header
+        return
+    endif
+
+    normal m'
+    call append(0, header)
+    if &filetype == 'python'
+        call append(1, coding)
+        call append(2, cfg)
+    endif
+
+    normal ''
+endfunction
+
+" }}}
