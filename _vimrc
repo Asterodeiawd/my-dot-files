@@ -1,31 +1,33 @@
 ﻿" will not be compatible with vi
 set nocompatible
 
-" Startup {{{
+" startup {{{
 filetype indent plugin on
 
-augroup vimautocmds
-	autocmd!
+if has('autocmd')
+	augroup vim_autocmds
+		autocmd!
 
-	" set local foldmethod to marker
-	autocmd FileType vim setlocal foldmethod=marker
+		" set local foldmethod to marker
+		autocmd FileType vim setlocal foldmethod=marker
 
-	" locate the cursor on last exit
-	autocmd BufReadPost *
-				\ if line("'\"") > 0 && line("'\"") <= line("$") |
-				\	exe "normal g'\"" |
-				\ endif
+		" locate the cursor on last exit
+		autocmd BufReadPost *
+					\ if line("'\"") > 0 && line("'\"") <= line("$") |
+					\	exe "normal g'\"" |
+					\ endif
 
-	" indent html file before save to the disk
-	autocmd BufWritePre *.html :normal gg=G
+		" indent html file before save to the disk
+		autocmd BufWritePre *.html :normal gg=G
 
-	autocmd FileType c,cpp,h,cs,java,css,js,nginx,scala,go,vim inoremap <buffer> {<CR> {<CR>}<Esc>O
+		autocmd FileType c,cpp,h,cs,java,css,js,nginx,scala,go,vim inoremap <buffer> {<CR> {<CR>}<Esc>O
 
-augroup END
+	augroup END
+endif
 
 " }}}
 
-" Generals {{{
+" generals {{{
 
 " general settings about vim, regardless platforms or GUI mode
 
@@ -153,11 +155,11 @@ if g:isGUI
 		set winaltkeys=no
 
 	elseif g:isLNX
-		" TODO: 
+		" TODO:
 		set guifont=Courier\ New\ 14
 
 	elseif g:isMAC
-		" maybe useful later 
+		" maybe useful later
 	endif
 
 else		" no gui
@@ -180,7 +182,7 @@ call plug#begin(g:plugin_path)
 Plug 'rking/ag.vim'
 Plug 'kien/ctrlp.vim'
 Plug 'Yggdroot/indentLine'
-" Plug 'Valloric/YouCompleteMe'
+" plug 'Valloric/YouCompleteMe'
 
 Plug 'mattn/emmet-vim'
 Plug 'bigeagle/molokai'
@@ -215,23 +217,65 @@ if has('mouse')
 	set nomousehide
 endif
 
+" keymaps {{{
 let mapleader = ","
+
+" open new tab for .vimrc
 nnoremap <leader>ev :tabe $MYVIMRC<cr>
+" source .vimrc
 nnoremap <leader>sv :source $MYVIMRC<cr>
+" surround the word under cursor with  double quote
 nnoremap <leader>" viw<esc>a"<esc>hbi"<esc>lel
-inoremap <esc> <nop>
+" show / hide highlight search
+nnoremap <F2> :nohl<cr>
+
+
+" adjest windows size under normal mode
+" TODO: not working under arch, find out the reason
+
+" gnome-shell sends multi-byte character to vim and vim doesn't know to
+" interpret that as <M-j>, change terminal's behav
+execute "set <M-j>=\ej"
+execute "set <M-k>=\ek"
+execute "set <M-h>=\eh"
+execute "set <M-l>=\el"
+nnoremap <M-j> :resize +5<cr>
+nnoremap <M-k> :resize -5<cr>
+nnoremap <M-l> :vertical resize +5<cr>
+nnoremap <M-h> :vertical resize -5<cr>
+
 inoremap jk <esc>
+
+" cursor movement under insert mode
 inoremap <C-h> <Left>
 inoremap <C-j> <Down>
 inoremap <C-k> <Up>
 inoremap <C-l> <Right>
 
+" change word under/adjacent to the cursor to upper/lower case
+inoremap <C-u> <esc>mzgUiw`za
+inoremap <C-U> <esc>mzguiw`za
+
+map <leader>tn :tabnew<cr>
+map <leader>tc :tabclose<cr>
+map <leader>th :tabp<cr>
+map <leader>tl :tabn<cr>
+
+" shell-like cursor movement in command mode
+cnoremap <C-a> <home>
+cnoremap <C-e> <end>
+
+" the keymaps below is just a help to disable the original command and get
+" used to the new keymaps.
+inoremap <esc> <nop>
+
+" }}}
 
 autocmd BufNewFile *.py call LinuxScriptHeader()
 autocmd BufNewFile *.sh call LinuxScriptHeader()
 
 " vim functions {{{
-function LinuxScriptHeader()
+function! LinuxScriptHeader()
 	if &filetype == 'python'
 		let header = "#!/usr/bin/env python"
 		let coding = "# -*- coding:utf-8 -*-"
@@ -254,4 +298,16 @@ function LinuxScriptHeader()
 	normal ''
 endfunction
 
+function! TransferAlt2Escape()
+	let c = 'a'
+
+	while c <= 'z'
+		exec "set <A-".c.">=\e".c
+		exec "imap \e".c." <A-".c.">"
+		let c = nr2char(1 + char2nr(c))
+	endw
+
+	set ttimeout ttimeoutlen=50
+	
+endfunction
 " }}}
