@@ -5,23 +5,134 @@ set nocompatible
 filetype indent plugin on
 
 if has('autocmd')
-    augroup vim_autocmds
+
+    " functions {{{
+    function! LinuxScriptHeader()
+        if &filetype == 'python'
+            let header = "#!/usr/bin/env python"
+            let coding = "# -*- coding:utf-8 -*-"
+            let cfg = "# vim: ts=4 sw=4 sts=4 expandtab"
+        elseif &filetype == 'sh'
+            let header = "#/bin/bash"
+        endif
+        let line = getline(1)
+        if line == header
+            return
+        endif
+
+        normal m'
+        call append(0, header)
+        if &filetype == 'python'
+            call append(1, coding)
+            call append(2, cfg)
+        endif
+
+        normal ''
+    endfunction
+
+    " later will change the function to be able to decide what keys to be mapped to escape sequence, now it just map lower case letters
+    function! TransferAlt2Escape()
+        let c = 'a'
+
+        while c <= 'z'
+            exec "set <A-".c.">=\e".c
+            exec "imap \e".c." <A-".c.">"
+            let c = nr2char(1 + char2nr(c))
+        endw
+
+        set ttimeout ttimeoutlen=50
+    endfunction
+
+    function! MapBufferKeys()
+        let s:num = 1
+
+        while s:num < 10
+            exec "nnoremap <leader>".s:num." :b ".s:num."<CR>"
+            let s:num = s:num + 1
+        endw
+    endfunction
+
+    function! SetFileEncodings(encodings)
+        let b:my_fileencodings_bak=&fileencodings
+        let &fileencodings=a:encodings
+    endfunction
+
+    function! RestoreFileEncodings()
+        let &fileencodings=b:my_fileencodings_bak
+        unlet b:my_fileencodings_bak
+    endfunction
+
+    function! CheckFileEncoding()
+        if &modified && &fileencoding != ''
+            exec 'e! ++enc=' . &fileencoding
+        endif
+    endfunction
+
+    function! ConvertHtmlEncoding(encoding)
+        if a:encoding ==? 'gb2312'
+            return 'gbk'
+        elseif a:encoding ==? 'iso-8859-1'
+            return 'latin1'
+        elseif a:encoding ==? 'utf8'
+            return 'utf-8'
+        else
+            return a:encoding
+        endif
+    endfunction
+
+    function! DetectHtmlEncoding()
+        if &filetype != 'html'
+            return
+        endif
+
+        normal m`
+        normal gg
+
+        if search('\c<meta http-equiv=\("\?\)Content-Type\1 content="text/html; charset=[-A-Za-z0-9_]\+">') != 0
+            let reg_bak=@"
+            normal y$
+            let charset=matchstr(@", 'text/html; charset=\zs[-A-Za-z0-9_]\+')
+            let charset=ConvertHtmlEncoding(charset)
+            normal ``
+            let @"=reg_bak
+
+            if &fileencodings == ''
+                let auto_encodings=',' . &encoding . ','
+            else
+                let auto_encodings=',' . &fileencodings . ','
+            endif
+
+            if charset !=? &fileencoding &&
+                        \(auto_encodings =~ ',' . &fileencoding . ',' || &fileencoding == '')
+                silent! exec 'e ++enc=' . charset
+            endif
+        else
+            normal ``
+        endif
+    endfunction
+
+    function! RemoveTrailingSpace()
+        if $VIM_HATE_SPACE_ERRORS != '0' &&
+                    \(&filetype == 'c' || &filetype == 'cpp' || &filetype == 'vim')
+            normal m`
+            silent! :%s/\s\+$//e
+            normal ``
+        endif
+    endfunction
+
+    " use wmctrl to enable full screen in gvim, install package: wmctrl in
+    " arch linux
+    function! ToggleFullScreen()
+        call system("wmctrl -r :ACTIVE: -b toggle,fullscreen")
+    endfunction
+
+    "}}} functions
+
+    augroup vim_localautocmds
         autocmd!
 
         " set local foldmethod to marker
         autocmd FileType vim setlocal foldmethod=marker
-
-        " locate the cursor on last exit
-        autocmd BufReadPost *
-                    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-                    \	exe "normal g'\"" |
-                    \ endif
-
-        " indent html file before save to the disk
-        autocmd BufWritePre *.html :normal gg=G
-
-        autocmd FileType c,cpp,h,cs,java,css,js,nginx,scala,go,vim inoremap <buffer> {<CR> {<CR>}<Esc>O
-
     augroup END
 endif
 
@@ -83,7 +194,6 @@ set expandtab
 " }}}
 
 " }}}
-
 
 " detect platform and gui {{{
 
@@ -205,11 +315,16 @@ call plug#end()
 " plugin params {{{
 
 set background=dark
-let g:airline_powerline_fonts = 2
-let g:airline_theme = "luna"
 let g:rehash256 = 1
 
-" }}}
+" airline {{{
+let g:airline_theme = "luna"
+let g:airline_powerline_fonts = 1
+" open airline tabline
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#buffer_nr_show = 1
+
+" }}} airline
 
 " support for mouse
 if has('mouse')
@@ -222,8 +337,8 @@ endif
 " keymaps {{{
 let mapleader = ","
 
-" open new tab for .vimrc
-nnoremap <leader>ev :tabe $MYVIMRC<cr>
+" open new buffer for .vimrc
+nnoremap <leader>ev :e $MYVIMRC<cr>
 " source .vimrc
 nnoremap <leader>sv :source $MYVIMRC<cr>
 " surround the word under cursor with  double quote
@@ -265,10 +380,20 @@ nnoremap <C-k> gk
 inoremap <C-u> <esc>mzgUiw`za
 inoremap <C-U> <esc>mzguiw`za
 
-map <leader>tn :tabnew<cr>
-map <leader>tc :tabclose<cr>
-map <leader>th :tabp<cr>
-map <leader>tl :tabn<cr>
+" stop using tabs, use buffers!
+" map <leader>tn :tabnew<cr>
+" map <leader>tc :tabclose<cr>
+" map <leader>th :tabp<cr>
+" map <leader>tl :tabn<cr>
+
+" buffer control {{{
+nnoremap <leader>bh :bp<cr>
+nnoremap <leader>bp :bn<cr>
+
+" map <leader>n to :b n
+call MapBufferKeys()
+
+" }}} buffer control
 
 " shell-like cursor movement in command mode
 cnoremap <C-a> <home>
@@ -280,117 +405,8 @@ inoremap <esc> <nop>
 
 " }}}
 
-" vim functions {{{
+" vim functions calls {{{
 if has('autocmd')
-    function! LinuxScriptHeader()
-        if &filetype == 'python'
-            let header = "#!/usr/bin/env python"
-            let coding = "# -*- coding:utf-8 -*-"
-            let cfg = "# vim: ts=4 sw=4 sts=4 expandtab"
-        elseif &filetype == 'sh'
-            let header = "#/bin/bash"
-        endif
-        let line = getline(1)
-        if line == header
-            return
-        endif
-
-        normal m'
-        call append(0, header)
-        if &filetype == 'python'
-            call append(1, coding)
-            call append(2, cfg)
-        endif
-
-        normal ''
-    endfunction
-
-    " later will change the function to be able to decide what keys to be mapped to escape sequence, now it just map lower case letters
-    function! TransferAlt2Escape()
-        let c = 'a'
-
-        while c <= 'z'
-            exec "set <A-".c.">=\e".c
-            exec "imap \e".c." <A-".c.">"
-            let c = nr2char(1 + char2nr(c))
-        endw
-
-        set ttimeout ttimeoutlen=50
-    endfunction
-
-    function! SetFileEncodings(encodings)
-        let b:my_fileencodings_bak=&fileencodings
-        let &fileencodings=a:encodings
-    endfunction
-
-    function! RestoreFileEncodings()
-        let &fileencodings=b:my_fileencodings_bak
-        unlet b:my_fileencodings_bak
-    endfunction
-
-    function! CheckFileEncoding()
-        if &modified && &fileencoding != ''
-            exec 'e! ++enc=' . &fileencoding
-        endif
-    endfunction
-
-    function! ConvertHtmlEncoding(encoding)
-        if a:encoding ==? 'gb2312'
-            return 'gbk'
-        elseif a:encoding ==? 'iso-8859-1'
-            return 'latin1'
-        elseif a:encoding ==? 'utf8'
-            return 'utf-8'
-        else
-            return a:encoding
-        endif
-    endfunction
-
-    function! DetectHtmlEncoding()
-        if &filetype != 'html'
-            return
-        endif
-
-        normal m`
-        normal gg
-
-        if search('\c<meta http-equiv=\("\?\)Content-Type\1 content="text/html; charset=[-A-Za-z0-9_]\+">') != 0
-            let reg_bak=@"
-            normal y$
-            let charset=matchstr(@", 'text/html; charset=\zs[-A-Za-z0-9_]\+')
-            let charset=ConvertHtmlEncoding(charset)
-            normal ``
-            let @"=reg_bak
-
-            if &fileencodings == ''
-                let auto_encodings=',' . &encoding . ','
-            else
-                let auto_encodings=',' . &fileencodings . ','
-            endif
-
-            if charset !=? &fileencoding &&
-                        \(auto_encodings =~ ',' . &fileencoding . ',' || &fileencoding == '')
-                silent! exec 'e ++enc=' . charset
-            endif
-        else
-            normal ``
-        endif
-    endfunction
-
-    function! RemoveTrailingSpace()
-        if $VIM_HATE_SPACE_ERRORS != '0' &&
-                    \(&filetype == 'c' || &filetype == 'cpp' || &filetype == 'vim')
-            normal m`
-            silent! :%s/\s\+$//e
-            normal ``
-        endif
-    endfunction
-
-    " use wmctrl to enable full screen in gvim, install package: wmctrl in
-    " arch linux
-    function! ToggleFullScreen()
-        call system("wmctrl -r :ACTIVE: -b toggle,fullscreen")
-    endfunction
 
     " highlight space errors in c/c++ source files
     if $VIM_HATE_SPACE_ERRORS != '0'
@@ -419,6 +435,17 @@ if has('autocmd')
 
     autocmd BufNewFile *.py call LinuxScriptHeader()
     autocmd BufNewFile *.sh call LinuxScriptHeader()
+
+    " locate the cursor on last exit
+    autocmd BufReadPost *
+                \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                \	exe "normal g'\"" |
+                \ endif
+
+    " indent html file before save to the disk
+    autocmd BufWritePre *.html :normal gg=G
+
+    autocmd FileType c,cpp,h,cs,java,css,js,nginx,scala,go,vim inoremap <buffer> {<CR> {<CR>}<Esc>O
 
 
 endif
