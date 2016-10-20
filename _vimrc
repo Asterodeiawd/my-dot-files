@@ -143,6 +143,7 @@ if g:isGUI
     set guioptions-=m		" hide menu
     set guioptions-=b		" hide bottom scroll bar
     set guioptions+=c		" show character box ?
+    set guioptions-=e       " use vim inner tab style, not system style
 
     if g:isWIN
         source $VIMRUNTIME/delmenu.vim
@@ -156,7 +157,7 @@ if g:isGUI
 
     elseif g:isLNX
         " TODO:
-        set guifont=Courier\ New\ 14
+        set guifont=Source\ Code\ Pro\ for\ Powerline\ 18
 
     elseif g:isMAC
         " maybe useful later
@@ -230,8 +231,11 @@ nnoremap <leader>" viw<esc>a"<esc>hbi"<esc>lel
 nnoremap <leader>' viw<esc>a'<esc>hbi'<esc>lel
 
 " show / hide highlight search
-nnoremap <F2> :nohl<cr>
-inoremap <F2> <C-O>:nohl<cr>
+" for reasons please refer to http://stackoverflow.com/questions/9054780/how-to-toggle-vims-search-highlight-visibility-without-disabling-it
+" there is another param invhlsearch but it does not meet  my requirement,
+" see http://stackoverflow.com/questions/14863315/highlight-searches-in-vim-but-not-substitutions/16750393#16750393
+nnoremap <silent><expr> <F2> (&hlsearch && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
+inoremap <silent><expr> <F2> (&hlsearch && v:hlsearch ? '<esc>:nohlsearch' : '<esc>:set hlsearch')."\na"
 
 nnoremap <F3> :setlocal list!<cr>
 " insert current time after ther cursor
@@ -382,6 +386,12 @@ if has('autocmd')
         endif
     endfunction
 
+    " use wmctrl to enable full screen in gvim, install package: wmctrl in
+    " arch linux
+    function! ToggleFullScreen()
+        call system("wmctrl -r :ACTIVE: -b toggle,fullscreen")
+    endfunction
+
     " highlight space errors in c/c++ source files
     if $VIM_HATE_SPACE_ERRORS != '0'
         let c_space_errors=1
@@ -401,6 +411,11 @@ if has('autocmd')
     if g:isLNX
         call TransferAlt2Escape()
     endif
+
+    if g:isGUI
+        map <F11> :call ToggleFullScreen()<CR>
+    endif
+
 
     autocmd BufNewFile *.py call LinuxScriptHeader()
     autocmd BufNewFile *.sh call LinuxScriptHeader()
