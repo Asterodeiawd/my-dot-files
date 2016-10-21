@@ -192,6 +192,8 @@ set expandtab
 set cursorline
 set cursorcolumn
 
+" don't show mode, the theme has taken care of it
+set noshowmode
 " }}}
 
 " }}}
@@ -294,8 +296,7 @@ call plug#begin(g:plugin_path)
 Plug 'rking/ag.vim'
 Plug 'kien/ctrlp.vim'
 Plug 'Yggdroot/indentLine'
-" plug 'Valloric/YouCompleteMe'
-
+plug 'Valloric/YouCompleteMe'
 Plug 'mattn/emmet-vim'
 Plug 'bigeagle/molokai'
 Plug 'scrooloose/nerdtree'
