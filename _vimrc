@@ -162,10 +162,6 @@ set nolist
 set modeline
 set completeopt=longest,menu
 
-" highlight line && column
-set cursorline
-set cursorcolumn
-
 set showmatch
 set matchtime=0
 
@@ -191,6 +187,11 @@ set shiftwidth=4
 set tabstop=4
 set softtabstop=4
 set expandtab
+
+" highlight line && column
+set cursorline
+set cursorcolumn
+
 " }}}
 
 " }}}
@@ -338,9 +339,10 @@ endif
 let mapleader = ","
 
 " open new buffer for .vimrc
-nnoremap <leader>ev :e $MYVIMRC<cr>
+nnoremap <leader>ev :e $MYVIMRC<CR>
 " source .vimrc
-nnoremap <leader>sv :source $MYVIMRC<cr>
+nnoremap <leader>sv :source $MYVIMRC<CR>
+
 " surround the word under cursor with  double quote
 nnoremap <leader>" viw<esc>a"<esc>hbi"<esc>lel
 nnoremap <leader>' viw<esc>a'<esc>hbi'<esc>lel
@@ -352,17 +354,22 @@ nnoremap <leader>' viw<esc>a'<esc>hbi'<esc>lel
 nnoremap <silent><expr> <F2> (&hlsearch && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
 inoremap <silent><expr> <F2> (&hlsearch && v:hlsearch ? '<esc>:nohlsearch' : '<esc>:set hlsearch')."\na"
 
-nnoremap <F3> :setlocal list!<cr>
+" use SHIFT + F3 to set cursor line/column on/off
+nnoremap <silent> <S-F3> :set cursorline!<CR>:set cursorcolumn!<CR>
+inoremap <silent> <S-F3> <esc>:set cursorline!<CR>:set cursorcolumn!<CR>a
+nnoremap <F3> :setlocal list!<CR>
+inoremap <F3> <esc>:setlocal list!<CR>a
+
 " insert current time after ther cursor
 nnoremap <F4> a<C-R>=strftime("%Y-%m-%d %a %I:%M %p")<CR><ESC>
 
 " adjest windows size under normal mode
 " gnome-shell sends multi-byte character to vim and vim doesn't know to
 " interpret that as <M-j>, change terminal's behavior
-nnoremap <M-j> :resize +5<cr>
-nnoremap <M-k> :resize -5<cr>
-nnoremap <M-h> :vertical resize +5<cr>
-nnoremap <M-l> :vertical resize -5<cr>
+nnoremap <M-j> :resize +5<CR>
+nnoremap <M-k> :resize -5<CR>
+nnoremap <M-h> :vertical resize +5<CR>
+nnoremap <M-l> :vertical resize -5<CR>
 
 inoremap jk <esc>
 
@@ -381,14 +388,14 @@ inoremap <C-u> <esc>mzgUiw`za
 inoremap <C-U> <esc>mzguiw`za
 
 " stop using tabs, use buffers!
-" map <leader>tn :tabnew<cr>
-" map <leader>tc :tabclose<cr>
-" map <leader>th :tabp<cr>
-" map <leader>tl :tabn<cr>
+" map <leader>tn :tabnew<CR>
+" map <leader>tc :tabclose<CR>
+" map <leader>th :tabp<CR>
+" map <leader>tl :tabn<CR>
 
 " buffer control {{{
-nnoremap <leader>bh :bp<cr>
-nnoremap <leader>bp :bn<cr>
+nnoremap <leader>bh :bp<CR>
+nnoremap <leader>bp :bn<CR>
 
 " map <leader>n to :b n
 call MapBufferKeys()
