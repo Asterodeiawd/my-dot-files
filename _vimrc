@@ -304,11 +304,11 @@ Plug 'scrooloose/syntastic'
 Plug 'klen/python-mode'
 Plug 'kien/rainbow_parentheses'
 Plug 'majutsushi/tagbar'
+Plug 'tpope/vim-fugitive'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'lervag/vim-latex'
 Plug 'jrosiek/vim-mark'
-
 
 call plug#end()
 " }}}
@@ -319,11 +319,15 @@ set background=dark
 let g:rehash256 = 1
 
 " airline {{{
+
 let g:airline_theme = "luna"
 let g:airline_powerline_fonts = 1
+
 " open airline tabline
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#buffer_nr_show = 1
+
+let g:Powerline_symbols = "fancy"
 
 " }}} airline
 
