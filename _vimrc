@@ -43,6 +43,7 @@ if has('autocmd')
         set ttimeout ttimeoutlen=50
     endfunction
 
+    " map <leader>n to :b n
     function! MapBufferKeys()
         let s:num = 1
 
@@ -292,7 +293,7 @@ call plug#begin(g:plugin_path)
 
 " plugin list
 Plug 'rking/ag.vim'
-Plug 'kien/ctrlp.vim'
+Plug 'ctrlpvim/ctrlp.vim'
 Plug 'Yggdroot/indentLine'
 " plug 'Valloric/YouCompleteMe'
 
@@ -313,23 +314,8 @@ Plug 'jrosiek/vim-mark'
 call plug#end()
 " }}}
 
-" plugin params {{{
-
 set background=dark
 let g:rehash256 = 1
-
-" airline {{{
-
-let g:airline_theme = "luna"
-let g:airline_powerline_fonts = 1
-
-" open airline tabline
-let g:airline#extensions#tabline#enabled = 1
-let g:airline#extensions#tabline#buffer_nr_show = 1
-
-let g:Powerline_symbols = "fancy"
-
-" }}} airline
 
 " support for mouse
 if has('mouse')
@@ -361,11 +347,11 @@ inoremap <silent><expr> <F2> (&hlsearch && v:hlsearch ? '<esc>:nohlsearch' : '<e
 " use SHIFT + F3 to set cursor line/column on/off
 nnoremap <silent> <S-F3> :set cursorline!<CR>:set cursorcolumn!<CR>
 inoremap <silent> <S-F3> <esc>:set cursorline!<CR>:set cursorcolumn!<CR>a
-nnoremap <F3> :setlocal list!<CR>
-inoremap <F3> <esc>:setlocal list!<CR>a
+nnoremap <silent> <F3> :setlocal list!<CR>
+inoremap <silent> <F3> <esc>:setlocal list!<CR>a
 
 " insert current time after ther cursor
-nnoremap <F4> a<C-R>=strftime("%Y-%m-%d %a %I:%M %p")<CR><ESC>
+nnoremap <silent> <F4> a<C-R>=strftime("%Y-%m-%d %a %I:%M %p")<CR><ESC>
 
 " adjest windows size under normal mode
 " gnome-shell sends multi-byte character to vim and vim doesn't know to
@@ -401,7 +387,6 @@ inoremap <C-U> <esc>mzguiw`za
 nnoremap <leader>bh :bp<CR>
 nnoremap <leader>bp :bn<CR>
 
-" map <leader>n to :b n
 call MapBufferKeys()
 
 " }}} buffer control
@@ -440,9 +425,8 @@ if has('autocmd')
     endif
 
     if g:isGUI
-        map <F11> :call ToggleFullScreen()<CR>
+        map <silent> <F11> :call ToggleFullScreen()<CR>
     endif
-
 
     autocmd BufNewFile *.py call LinuxScriptHeader()
     autocmd BufNewFile *.sh call LinuxScriptHeader()
@@ -461,3 +445,36 @@ if has('autocmd')
 
 endif
 " }}}
+
+
+" plugin params {{{
+
+" airline {{{
+
+let g:airline_theme = "luna"
+let g:airline_powerline_fonts = 1
+
+" open airline tabline
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#buffer_nr_show = 1
+
+let g:Powerline_symbols = "fancy"
+
+" }}} airline
+
+" ctrlp {{{
+let g:ctrlp_max_height = 10
+let g:ctrlp_follow_symlinks = 1
+
+let g:ctrlp_custom_ignore = {
+            \ 'dir': '\v[\/]\.(git|hg|svn|rvm)$',
+            \ 'file': '\v\.(exe|so|dll|zip|tar|tar.gz|pyc)$',
+            \ }
+
+" open ctrlp in most recently used mode
+nnoremap <leader>ru :CtrlPMRU<CR>
+nnoremap <leader>f :CtrlP<CR>
+" }}}
+
+" }}}
+
