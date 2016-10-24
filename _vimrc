@@ -138,6 +138,13 @@ endif
 
 " }}}
 
+" encodings {{{
+let $LANG = 'en_US.UTF-8'
+set fileencoding=utf-8
+set fileencodings=usc-bom,utf-8,gbk,cp936,gb18030,euc-jp,latin-1
+set encoding=utf-8
+" }}}
+
 " generals {{{
 
 " general settings about vim, regardless platforms or GUI mode
@@ -266,6 +273,10 @@ if g:isGUI
         " don't map atl key to open menus.
         set winaltkeys=no
 
+        " use directx to render in windows, make sure gvim has: +directx
+        " when using :Version command.
+        set renderoptions=type:directx,level:0.75,gamma:1.25,contrast:0.25,
+                    \geom:1,renmode:5,taamode:1
     elseif g:isLNX
         " TODO:
         set guifont=Source\ Code\ Pro\ for\ Powerline\ 18
@@ -280,13 +291,6 @@ endif
 
 " }}}
 
-" encodings {{{
-let $LANG = 'en_US.UTF-8'
-set fileencoding=utf-8
-set fileencodings=usc-bom,utf-8,gbk,cp936,gb18030,euc-jp,latin-1
-set encoding=utf-8
-" }}}
-
 " vim-plug init {{{
 call plug#begin(g:plugin_path)
 
@@ -295,7 +299,6 @@ Plug 'rking/ag.vim'
 Plug 'kien/ctrlp.vim'
 Plug 'Yggdroot/indentLine'
 " plug 'Valloric/YouCompleteMe'
-
 Plug 'mattn/emmet-vim'
 Plug 'bigeagle/molokai'
 Plug 'scrooloose/nerdtree'
@@ -331,6 +334,10 @@ let g:Powerline_symbols = "fancy"
 
 " }}} airline
 
+" CtrlP {{{
+" ignore files and dirs
+let g:ctrlp_custom_ignore = '\v[\/].(git|hg|svn)$'
+" }}}
 " support for mouse
 if has('mouse')
     " mouse can be used in all modes, normal, visual ...
@@ -399,7 +406,7 @@ inoremap <C-U> <esc>mzguiw`za
 
 " buffer control {{{
 nnoremap <leader>bh :bp<CR>
-nnoremap <leader>bp :bn<CR>
+nnoremap <leader>bl :bn<CR>
 
 " map <leader>n to :b n
 call MapBufferKeys()
